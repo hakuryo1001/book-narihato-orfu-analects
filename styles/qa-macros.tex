@@ -1,0 +1,12 @@
+% Peing Q&A: one numbered chapter per question–answer pair.
+% Generated body uses \qaanswer after \chapter{question}.
+
+\newcommand{\qaanswer}[1]{%
+  \begingroup
+  \setlength{\parindent}{0pt}%
+  \setlength{\parskip}{0.6em}%
+  \noindent{\bfseries 答}\par\vspace{0.5em}%
+  #1%
+  \endgroup
+  \clearpage
+}
