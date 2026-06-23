@@ -1,0 +1,40 @@
+% -----------------------------------------------------------------------------
+% Jyutcitzi document mode.
+%
+% \jczOn at \begin{document} selects Jyutcitzi globally so raw PUA code points
+% render without \jcz{…} on every glyph.  Goetsu blocks suspend that selection
+% with \jczOff (font only) and resume with \jcz@restore.
+%
+%   \jczOn          enable global Jyutcitzi (equivalent to \jcz{})
+%   \jczOff         suspend Jyutcitzi font (body CJK / Latin restored)
+%   \jcz@restore    re-select Jyutcitzi if \jczOn was active
+%   \jcz{…}         inline Jyutcitzi, unchanged
+% -----------------------------------------------------------------------------
+\makeatletter
+
+\newif\ifjcz@on
+\jcz@onfalse
+
+\newcommand{\jcz@restore}{%
+  \ifjcz@on
+    \jcz{}%
+  \fi
+}
+
+\@ifundefined{jcz@available}{%
+  \newcommand{\jczOn}{}%
+  \newcommand{\jczOff}{}%
+}{%
+  \newcommand{\jczOn}{%
+    \jcz@ontrue
+    \jcz{}%
+  }
+
+  % Suspend the Jyutcitzi font selection only; keep \ifjcz@on for restore.
+  \newcommand{\jczOff}{%
+    \normalfont
+    \CJKfamily{\CJKfamilydefault}%
+  }
+}
+
+\makeatother

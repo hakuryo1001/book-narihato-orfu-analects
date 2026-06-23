@@ -9,23 +9,28 @@
 
 % Jyutcitzi: \jcz{...} and \jczPMingLiU{...}. If font missing, fallback to pass-through.
 % Tries: ../fonts/ (cover template), fonts/ (project root), ../../fonts/ (e.g. shared).
+\makeatletter
 \IfFileExists{../fonts/JyutcitziWithSourceHanSerifTCRegular.ttf}{%
   \newfontfamily{\jczPMingLiU}{JyutcitziWithPMingLiURegular}[Path = ../fonts/, Extension = .ttf]
   \newfontfamily{\jcz}{JyutcitziWithSourceHanSerifTCRegular}[Path = ../fonts/, Extension = .ttf]%
+  \newcommand{\jcz@available}{}%
 }{%
   \IfFileExists{fonts/JyutcitziWithSourceHanSerifTCRegular.ttf}{%
     \newfontfamily{\jczPMingLiU}{JyutcitziWithPMingLiURegular}[Path = fonts/, Extension = .ttf]
     \newfontfamily{\jcz}{JyutcitziWithSourceHanSerifTCRegular}[Path = fonts/, Extension = .ttf]%
+    \newcommand{\jcz@available}{}%
   }{%
     \IfFileExists{../../fonts/JyutcitziWithSourceHanSerifTCRegular.ttf}{%
       \newfontfamily{\jczPMingLiU}{JyutcitziWithPMingLiURegular}[Path = ../../fonts/, Extension = .ttf]
       \newfontfamily{\jcz}{JyutcitziWithSourceHanSerifTCRegular}[Path = ../../fonts/, Extension = .ttf]%
+      \newcommand{\jcz@available}{}%
     }{%
       \newcommand{\jcz}[1]{####1}%
       \newcommand{\jczPMingLiU}[1]{####1}%
     }%
   }%
 }
+\makeatother
 \IfFileExists{../fonts/batang.ttf}{%
   \newfontfamily{\batang}{batang}[Path = ../fonts/, Extension = .ttf]
   \newCJKfontfamily\koreanfont{Batang}[Path = ../fonts/, Extension = .ttf]%

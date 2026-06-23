@@ -1,0 +1,41 @@
+\chapter[Goetsu font test]{Goetsu font test}
+
+% ---------------------------------------------------------------------------
+% This chapter exercises Jyutcitzi vs Goetsu routing.
+% Body text runs under \jczOn (see narihato-orfu-analects.tex).
+% Goetsu blocks suspend Jyutcitzi, typeset in goetsusioji, then restore.
+% ---------------------------------------------------------------------------
+
+\section*{Raw PUA (global \texttt{\textbackslash jczOn})}
+
+
+
+\section*{Explicit \texttt{\textbackslash jcz\{...\}}}
+
+\jcz{}
+
+\section*{Goetsu environment}
+
+\begin{goetsu}
+
+\end{goetsu}
+
+\section*{Goetsu inline}
+
+漢字\goetsuinline{}漢字
+
+\section*{Goetsu in chapter title (real use case)}
+
+See the running head / TOC entry for this chapter, and the title line above:
+Goetsu glyphs can sit inside \verb|\chapter{...\begin{goetsu}...\end{goetsu}}|.
+
+\section*{Mixed body + Goetsu block}
+
+請問吳語的副詞、副動詞的系統閣下有過闡述嗎？比如 uli、suli、syli、deuli 等等這些
+\begin{goetsu}
+
+\end{goetsu}
+
+\qaanswer{%
+Placeholder answer for layout test only.
+}

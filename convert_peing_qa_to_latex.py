@@ -14,6 +14,9 @@ Overwrite all split files from JSON:
 
 Merge split files back into a single chapters/1-quotes.tex:
   python3 convert_peing_qa_to_latex.py --combine
+
+After bulk-editing the combined file, split back into chapters/quotes/:
+  python3 convert_peing_qa_to_latex.py --split-from-combined
 """
 
 from __future__ import annotations
@@ -163,8 +166,70 @@ def strip_progress_header(text: str) -> str:
     return text
 
 
+def quote_files(quotes_dir: Path) -> list[Path]:
+    return sorted(
+        p for p in quotes_dir.glob("*.tex") if re.fullmatch(r"\d{3}\.tex", p.name)
+    )
+
+
+def parse_combined_entries(text: str) -> list[str]:
+    """Split a combined 1-quotes.tex into \\chapter[...]...\\qaanswer{...} blocks."""
+    chunks = re.split(r"(?=\\chapter\[)", text)
+    entries: list[str] = []
+    for chunk in chunks:
+        chunk = chunk.strip()
+        if chunk.startswith("\\chapter["):
+            entries.append(chunk)
+    return entries
+
+
+def latex_toc_to_source_question(toc: str) -> str:
+    """Rough plain-text question for progress headers from TOC line."""
+    q = toc.replace(r" \\[0.35em] ", "\n")
+    q = re.sub(r"\\textasciitilde\{\}", "~", q)
+    q = re.sub(r"\\textasciicircum\{\}", "^", q)
+    q = re.sub(r"\\&", "&", q)
+    return q
+
+
+def split_from_combined(combined: Path, quotes_dir: Path, manifest: Path) -> int:
+    text = combined.read_text(encoding="utf-8")
+    entries = parse_combined_entries(text)
+    if not entries:
+        print(f"No \\chapter[...] entries found in {combined}", file=sys.stderr)
+        return 1
+
+    quotes_dir.mkdir(parents=True, exist_ok=True)
+    quote_names: list[str] = []
+    total = len(entries)
+
+    for num, entry in enumerate(entries, start=1):
+        toc_match = re.match(r"\\chapter\[([^\]]*)\]", entry)
+        if not toc_match:
+            print(f"Could not parse entry {num:03d}", file=sys.stderr)
+            return 1
+        toc = toc_match.group(1)
+        source_question = latex_toc_to_source_question(toc)
+
+        name = f"{num:03d}.tex"
+        quote_names.append(name)
+        header = QUOTE_HEADER.format(
+            num=num,
+            total=total,
+            question_source=source_question.replace("\n", "\n% "),
+        )
+        (quotes_dir / name).write_text(header + entry.rstrip() + "\n", encoding="utf-8")
+
+    emit_manifest(quote_names, manifest)
+    print(
+        f"Split {total} entries from {combined} into {quotes_dir}; manifest: {manifest}",
+        file=sys.stderr,
+    )
+    return 0
+
+
 def combine_quotes(quotes_dir: Path, manifest: Path) -> int:
-    files = sorted(quotes_dir.glob("*.tex"))
+    files = quote_files(quotes_dir)
     if not files:
         print(f"No quote files found in {quotes_dir}", file=sys.stderr)
         return 1
@@ -215,10 +280,25 @@ def main() -> int:
         action="store_true",
         help="Merge chapters/quotes/*.tex back into chapters/1-quotes.tex.",
     )
+    ap.add_argument(
+        "--split-from-combined",
+        action="store_true",
+        help="Split chapters/1-quotes.tex back into chapters/quotes/*.tex.",
+    )
+    ap.add_argument(
+        "--combined",
+        type=Path,
+        default=None,
+        help="Combined file for --split-from-combined (default: chapters/1-quotes.tex).",
+    )
     args = ap.parse_args()
 
     if args.combine:
         return combine_quotes(args.quotes_dir, args.manifest)
+
+    if args.split_from_combined:
+        combined = args.combined or args.manifest
+        return split_from_combined(combined, args.quotes_dir, args.manifest)
 
     pairs = load_pairs(args.json)
     written, skipped = split_pairs(pairs, args.quotes_dir, args.manifest, args.force)

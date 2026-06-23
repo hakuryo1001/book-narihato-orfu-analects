@@ -1,0 +1,73 @@
+% -----------------------------------------------------------------------------
+% Goetsu sioji (月絶書) PUA glyphs — goetsusioji.ttf
+% Load after preamble/fonts-and-ruby.tex and preamble/jyutcitzi-mode.tex.
+%
+% PUA code points share Unicode space with Jyutcitzi.  Do not call \jczOff here:
+% that switches xeCJK to BabelStone Han, which lacks PUA glyphs, and with
+% fallback disabled they become tofu.  Instead, wrap content in \goetsufont only.
+%
+%   \begin{goetsu}…\end{goetsu}
+%   \goetsuinline{…}
+% -----------------------------------------------------------------------------
+
+\makeatletter
+
+\newif\ifgoetsu@defined
+\goetsu@definedfalse
+
+\newcommand\goetsu@define{%
+  \newfontfamily{\goetsufont}{goetsusioji}[Path=\goetsu@path, Extension=.ttf]%
+  \newCJKfontfamily{\goetsuCJK}{goetsusioji}[Path=\goetsu@path, Extension=.ttf]%
+  \goetsu@definedtrue
+}
+
+% Real goetsusioji.ttf is ~13 MB (internal name: Source Han Serif CN).
+% A ~24 MB file named goetsusioji.ttf but containing Jyutcitzi is the wrong copy.
+
+\IfFileExists{../fonts/goetsusioji.ttf}{%
+  \def\goetsu@path{../fonts/}%
+  \goetsu@define
+}{%
+  \IfFileExists{fonts/goetsusioji.ttf}{%
+    \def\goetsu@path{fonts/}%
+    \goetsu@define
+  }{%
+    \IfFileExists{../../fonts/goetsusioji.ttf}{%
+      \def\goetsu@path{../../fonts/}%
+      \goetsu@define
+    }{%
+      \PackageWarningNoLine{goetsu}{%
+        goetsusioji.ttf not found (tried ../fonts/, fonts/, ../../fonts/);%
+        goetsu environment will pass text through unchanged%
+      }%
+    }%
+  }%
+}
+
+\newcommand{\goetsu@typeset}[1]{%
+  \begingroup
+  \goetsufont{\ignorespaces#1\unskip}%
+  \endgroup
+}
+
+\newcommand{\goetsuinline}[1]{%
+  \ifgoetsu@defined
+    \goetsu@typeset{#1}%
+  \else
+    #1%
+  \fi
+}
+
+\ExplSyntaxOn
+\NewDocumentEnvironment { goetsu } { +b }
+  {
+    \ifgoetsu@defined
+      \goetsu@typeset {#1}
+    \else
+      #1
+    \fi
+  }
+  { }
+\ExplSyntaxOff
+
+\makeatother
